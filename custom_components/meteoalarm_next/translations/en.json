@@ -1,0 +1,39 @@
+{
+  "title": "MeteoAlarm Next",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add MeteoAlarm",
+        "description": "Select country or add custom:\n(NOTE: Make sure that MeteoAlarm atom feed exists)",
+        "data": {
+          "country": "Country"
+        }
+      },
+      "select_province": {
+        "title": "Select province",
+        "description": "Select province or add custom:\n(NOTE: Only provinces with active alert are listed in dropdown)",
+        "data": {
+          "province": "Province (geocode or name)",
+          "language": "Language"
+        }
+      }
+    },
+    "error": {
+      "unknown": "An unexpected error occurred. Please try again."
+    },
+    "abort": {
+      "already_configured": "This MeteoAlarm is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Update configuration",
+        "data": {
+          "update_interval_minutes": "Update interval (minutes)",
+          "request_timeout": "Request timeout (seconds)"
+        }
+      }
+    }
+  }
+}

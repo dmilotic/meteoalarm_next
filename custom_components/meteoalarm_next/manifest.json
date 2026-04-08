@@ -1,0 +1,16 @@
+{
+  "domain": "meteoalarm_next",
+  "name": "MeteoAlarm Next",
+  "version": "1.0.0",
+  "documentation": "https://github.com/dmilotic/meteoalarm_next",
+  "issue_tracker": "https://github.com/dmilotic/meteoalarm_next/issues",
+  "requirements": [],
+  "codeowners": [
+    "@dmilotic"
+  ],
+  "dependencies": [
+    "http"
+  ],
+  "iot_class": "cloud_polling",
+  "config_flow": true
+}
