@@ -12,8 +12,10 @@ from homeassistant.util import slugify
 
 from .const import (
     CONF_COUNTRY,
+    CONF_COUNTRY_NAME,
     CONF_LANGUAGE,
     CONF_PROVINCE,
+    CONF_PROVINCE_NAME,
     CONF_REQUEST_TIMEOUT,
     CONF_UPDATE_INTERVAL_MINUTES,
     DEFAULT_LANGUAGE,
@@ -88,14 +90,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
-            province_desc = self._provinces.get(self._province, self._province)
-            title = f"MeteoAlarm {str.capitalize(self._country)} - {province_desc}"
+            country_name = METEOALARM_FEEDS.get(self._country, self._country)
+            province_name = self._provinces.get(self._province, self._province)
+            title = f"MeteoAlarm {str.capitalize(country_name)} - {province_name}"
             return self.async_create_entry(
                 title=title,
                 data={
                     CONF_COUNTRY: self._country,
                     CONF_PROVINCE: self._province,
                     CONF_LANGUAGE: self._language,
+                    CONF_COUNTRY_NAME: country_name,
+                    CONF_PROVINCE_NAME: province_name,
                 },
                 options={
                     CONF_UPDATE_INTERVAL_MINUTES: DEFAULT_UPDATE_INTERVAL_MINUTES,
@@ -151,11 +156,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
         if user_input is not None:
-            # init_collect = user_input.pop(KEY_INIT_COLLECT)
-            # if init_collect:
-            #     coordinator = self.hass.data[DOMAIN][self.config_entry.entry_id]
-            #     await coordinator.reset_persist()
-            #     await coordinator.async_request_refresh()
             return self.async_create_entry(title="Options", data=user_input)
         options = self.config_entry.options
         schema = vol.Schema(
@@ -170,10 +170,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_REQUEST_TIMEOUT,
                     default=options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT),
                 ): vol.Coerce(int),
-                # vol.Required(
-                #     KEY_INIT_COLLECT,
-                #     default=False,
-                # ): bool,
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

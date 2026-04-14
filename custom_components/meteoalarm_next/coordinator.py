@@ -8,15 +8,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from .const import (
-    DOMAIN,
-    KEY_ACTIVE_ALERT,
-    KEY_ACTIVE_ALERTS,
-    KEY_ACTIVE_SUMMARY,
-    KEY_FUTURE_ALERT,
-    KEY_FUTURE_ALERTS,
-    KEY_FUTURE_SUMMARY,
-)
+from . import ts_util
+from .const import DOMAIN, KEY_ACTIVE_ALERTS, KEY_SUMMARY, KEY_UPCOMING_ALERTS
 from .meteoalertapi import Meteoalert
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,7 +32,7 @@ class MeteoCoordinator(DataUpdateCoordinator):
         self._lock = asyncio.Lock()
 
     async def _async_update_data(self) -> dict:
-        _LOGGER.debug("Fetching HEP ODS data")
+        _LOGGER.debug("Fetching %s data", DOMAIN)
 
         local_now = dt_util.now()
 
@@ -47,9 +40,9 @@ class MeteoCoordinator(DataUpdateCoordinator):
             alerts = await self._client.get_alerts()
 
         active_alerts = []
-        future_alerts = []
+        upcoming_alerts = []
         active_summary = []
-        future_summary = []
+        upcoming_summary = []
         for alert in alerts:
             onset = dt_util.parse_datetime(alert.get("onset", ""))
             expires = dt_util.parse_datetime(alert.get("expires", ""))
@@ -68,33 +61,25 @@ class MeteoCoordinator(DataUpdateCoordinator):
             a_type = a_type.replace("-", " ")
             a_type = a_type.strip()
 
-            if local_now > onset:
+            time_span = ts_util.time_span_abs(local_now, onset, expires)
+            if local_now >= onset:
                 active_alerts.append(alert)
-                diff = expires - local_now
-                hours = round(diff.total_seconds() / 3600)
-                summary = f"{a_level} {a_type} for {hours}h"
+                summary = f"{a_level} {a_type} {time_span}"
                 summary = summary.capitalize()
                 if summary not in active_summary:
                     active_summary.append(summary)
                 continue
 
-            future_alerts.append(alert)
-            diff = onset - local_now
-            hours = round(diff.total_seconds() / 3600)
-            summary = f"{a_level} {a_type} in {hours}h"
+            upcoming_alerts.append(alert)
+            summary = f"Upcoming {a_level} {a_type} {time_span}"
             summary = summary.capitalize()
-            if summary not in active_summary:
-                future_summary.append(summary)
+            if summary not in upcoming_summary:
+                upcoming_summary.append(summary)
 
-        active_alert = len(active_alerts) > 0
-        future_alert = len(future_alerts) > 0
-
+        summary_list = active_summary + upcoming_summary
         data = {
             KEY_ACTIVE_ALERTS: active_alerts,
-            KEY_FUTURE_ALERTS: future_alerts,
-            KEY_ACTIVE_ALERT: active_alert,
-            KEY_FUTURE_ALERT: future_alert,
-            KEY_ACTIVE_SUMMARY: ", ".join(active_summary),
-            KEY_FUTURE_SUMMARY: ", ".join(future_summary),
+            KEY_UPCOMING_ALERTS: upcoming_alerts,
+            KEY_SUMMARY: ", ".join(summary_list),
         }
         return data

@@ -14,10 +14,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     ATTRIBUTION,
     DOMAIN,
-    KEY_ACTIVE_ALERT,
     KEY_ACTIVE_ALERTS,
-    KEY_FUTURE_ALERT,
-    KEY_FUTURE_ALERTS,
+    KEY_UPCOMING_ALERTS,
     SERVICE_MANUFACTURER,
     SERVICE_MODEL,
 )
@@ -40,24 +38,22 @@ async def async_setup_entry(
     active_alert_entity = AlertBinarySensor(
         coordinator,
         "Active Alert",
-        KEY_ACTIVE_ALERT,
-        [KEY_ACTIVE_ALERTS],
-        BinarySensorDeviceClass.SAFETY,
-        child_device_info,
+        KEY_ACTIVE_ALERTS,
         entry_unique_id,
+        child_device_info,
+        BinarySensorDeviceClass.SAFETY,
     )
 
-    future_alert_entity = AlertBinarySensor(
+    upcoming_alert_entity = AlertBinarySensor(
         coordinator,
-        "Future Alert",
-        KEY_FUTURE_ALERT,
-        [KEY_FUTURE_ALERTS],
-        BinarySensorDeviceClass.SAFETY,
-        child_device_info,
+        "Upcoming Alert",
+        KEY_UPCOMING_ALERTS,
         entry_unique_id,
+        child_device_info,
+        BinarySensorDeviceClass.SAFETY,
     )
 
-    async_add_entities([active_alert_entity, future_alert_entity])
+    async_add_entities([active_alert_entity, upcoming_alert_entity])
 
 
 class AlertBinarySensor(CoordinatorEntity, BinarySensorEntity):
@@ -66,28 +62,28 @@ class AlertBinarySensor(CoordinatorEntity, BinarySensorEntity):
         coordinator: MeteoCoordinator,
         name: str,
         key: str,
-        extra_attributes: list[str],
-        device_class: BinarySensorDeviceClass,
-        device_info: DeviceInfo,
         entry_unique_id: str,
+        device_info: DeviceInfo,
+        device_class: BinarySensorDeviceClass,
     ) -> None:
         super().__init__(coordinator)
         self._attr_attribution = ATTRIBUTION
         self._attr_has_entity_name = True
         self._attr_name = name
         self._key = key
-        self._extra_attributes = extra_attributes
 
-        self._attr_device_class = device_class
-        self._attr_device_info = device_info
         self._attr_unique_id = f"{entry_unique_id}_{key}"
+        self._attr_device_info = device_info
+        self._attr_device_class = device_class
 
     @property
     def is_on(self):
         data = self.coordinator.data or {}
-        return data.get(self._key)
+        alerts = data.get(self._key, [])
+        return len(alerts) > 0
 
     @property
     def extra_state_attributes(self):
         data = self.coordinator.data or {}
-        return {k: data.get(k) for k in self._extra_attributes}
+        alerts = data.get(self._key, [])
+        return {"alerts": alerts}

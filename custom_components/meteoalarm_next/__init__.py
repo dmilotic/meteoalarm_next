@@ -26,12 +26,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     options = entry.options or {}
     request_timeout = int(options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT))
 
-    session_mjerenje = aiohttp_client.async_get_clientsession(hass)
+    session = aiohttp_client.async_get_clientsession(hass)
     client = Meteoalert(
         country=data[CONF_COUNTRY],
         province=data[CONF_PROVINCE],
         language=data[CONF_LANGUAGE],
-        session=session_mjerenje,
+        session=session,
         request_timeout=request_timeout,
     )
 

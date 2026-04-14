@@ -1,7 +1,7 @@
 {
   "domain": "meteoalarm_next",
   "name": "MeteoAlarm Next",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "documentation": "https://github.com/dmilotic/meteoalarm_next",
   "issue_tracker": "https://github.com/dmilotic/meteoalarm_next/issues",
   "requirements": [],

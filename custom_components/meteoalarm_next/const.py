@@ -5,6 +5,8 @@ DOMAIN = "meteoalarm_next"
 CONF_COUNTRY = "country"
 CONF_PROVINCE = "province"
 CONF_LANGUAGE = "language"
+CONF_COUNTRY_NAME = "country_name"
+CONF_PROVINCE_NAME = "province_name"
 
 DEFAULT_LANGUAGE = "en"
 
@@ -19,8 +21,5 @@ DEFAULT_UPDATE_INTERVAL_MINUTES = 30
 DEFAULT_REQUEST_TIMEOUT = 30  # seconds
 
 KEY_ACTIVE_ALERTS = "active_alerts"
-KEY_ACTIVE_ALERT = "active_alert"
-KEY_FUTURE_ALERTS = "future_alerts"
-KEY_FUTURE_ALERT = "future_alert"
-KEY_ACTIVE_SUMMARY = "active_summary"
-KEY_FUTURE_SUMMARY = "future_summary"
+KEY_UPCOMING_ALERTS = "upcoming_alerts"
+KEY_SUMMARY = "summary"

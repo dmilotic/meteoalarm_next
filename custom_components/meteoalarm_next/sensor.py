@@ -10,9 +10,12 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     ATTRIBUTION,
+    CONF_COUNTRY,
+    CONF_COUNTRY_NAME,
+    CONF_PROVINCE,
+    CONF_PROVINCE_NAME,
     DOMAIN,
-    KEY_ACTIVE_SUMMARY,
-    KEY_FUTURE_SUMMARY,
+    KEY_SUMMARY,
     SERVICE_MANUFACTURER,
     SERVICE_MODEL,
 )
@@ -32,25 +35,21 @@ async def async_setup_entry(
         entry_type=DeviceEntryType.SERVICE,
     )
 
-    active_alert_entity = AlertSummarySensor(
+    summary_entity = AlertSummarySensor(
         coordinator,
-        "Active Summary",
-        KEY_ACTIVE_SUMMARY,
-        [],
-        child_device_info,
+        "Summary",
+        KEY_SUMMARY,
+        {
+            CONF_COUNTRY: entry.data.get(CONF_COUNTRY),
+            CONF_PROVINCE: entry.data.get(CONF_PROVINCE),
+            CONF_COUNTRY_NAME: entry.data.get(CONF_COUNTRY_NAME),
+            CONF_PROVINCE_NAME: entry.data.get(CONF_PROVINCE_NAME),
+        },
         entry_unique_id,
+        child_device_info,
     )
 
-    future_alert_entity = AlertSummarySensor(
-        coordinator,
-        "Future Summary",
-        KEY_FUTURE_SUMMARY,
-        [],
-        child_device_info,
-        entry_unique_id,
-    )
-
-    async_add_entities([active_alert_entity, future_alert_entity])
+    async_add_entities([summary_entity])
 
 
 class AlertSummarySensor(CoordinatorEntity, SensorEntity):
@@ -59,9 +58,9 @@ class AlertSummarySensor(CoordinatorEntity, SensorEntity):
         coordinator: MeteoCoordinator,
         name: str,
         key: str,
-        extra_attributes: list[str],
-        device_info: DeviceInfo,
+        extra_attributes: dict,
         entry_unique_id: str,
+        device_info: DeviceInfo,
     ) -> None:
         super().__init__(coordinator)
         self._attr_attribution = ATTRIBUTION
@@ -69,21 +68,19 @@ class AlertSummarySensor(CoordinatorEntity, SensorEntity):
         self._attr_name = name
         self._key = key
         self._extra_attributes = extra_attributes
-        self._attr_icon = "mdi:information-outline"
 
-        self._attr_device_info = device_info
         self._attr_unique_id = f"{entry_unique_id}_{key}"
+        self._attr_device_info = device_info
+        self._attr_icon = "mdi:information-outline"
 
     @property
     def native_value(self):
         data = self.coordinator.data or {}
-
-        value = data.get(self._key)
-        if value == "":
+        value = data.get(self._key, "")
+        if not value:
             return "No warnings"
         return value
 
     @property
     def extra_state_attributes(self):
-        data = self.coordinator.data or {}
-        return {k: data.get(k) for k in self._extra_attributes}
+        return self._extra_attributes or {}
