@@ -1,3 +1,4 @@
+import logging
 import re
 
 import aiohttp
@@ -44,6 +45,8 @@ METEOALARM_FEEDS = {
     "ukraine": "Ukraine",
     "united-kingdom": "United Kingdom",
 }
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Meteoalert:
@@ -130,6 +133,9 @@ class Meteoalert:
             async with self._session.get(
                 cap_url, timeout=self._timeout, ssl=self._ssl
             ) as response:
+                if not response.ok:
+                    _LOGGER.warning("Fetching cap+xml from %s failed", cap_url)
+                    continue
                 response.raise_for_status()
                 text = await response.text()
 

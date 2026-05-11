@@ -65,18 +65,20 @@ class MeteoCoordinator(DataUpdateCoordinator):
             if local_now >= onset:
                 active_alerts.append(alert)
                 summary = f"{a_level} {a_type} {time_span}"
-                summary = summary.capitalize()
+                summary = (onset, summary.capitalize())
                 if summary not in active_summary:
                     active_summary.append(summary)
                 continue
 
             upcoming_alerts.append(alert)
             summary = f"Upcoming {a_level} {a_type} {time_span}"
-            summary = summary.capitalize()
+            summary = (onset, summary.capitalize())
             if summary not in upcoming_summary:
                 upcoming_summary.append(summary)
 
-        summary_list = active_summary + upcoming_summary
+        summary_list = []
+        summary_list += [s for ts, s in sorted(active_summary)]
+        summary_list += [s for ts, s in sorted(upcoming_summary)]
         data = {
             KEY_ACTIVE_ALERTS: active_alerts,
             KEY_UPCOMING_ALERTS: upcoming_alerts,
